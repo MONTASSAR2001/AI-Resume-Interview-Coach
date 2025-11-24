@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI RAG Career Coach 🚀</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; height: 100vh; margin: 0; }
+        .container { width: 900px; background: white; margin: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: linear-gradient(135deg, #00b09b, #96c93d); color: white; padding: 20px; text-align: center; }
+        .header h2 { margin: 0; font-size: 1.8rem; }
+        .header p { opacity: 0.9; margin-top: 5px; }
+        
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; background: #fff; }
+        .message { margin-bottom: 15px; }
+        .message.user { text-align: right; }
+        .message.user .content { background: #00b09b; color: white; display: inline-block; padding: 12px 18px; border-radius: 18px 18px 0 18px; max-width: 75%; text-align: left; }
+        .message.ai { text-align: left; }
+        .message.ai .content { background: #f1f0f0; color: #333; display: inline-block; padding: 15px; border-radius: 18px 18px 18px 0; max-width: 90%; line-height: 1.6; }
+        .message.ai strong { color: #008a7a; }
+        
+        .upload-area { display: flex; gap: 10px; padding: 15px; background: #f9f9f9; border-top: 1px solid #eee; }
+        .file-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .file-group label { font-size: 0.9rem; font-weight: bold; color: #555; }
+        input[type="file"] { padding: 8px; background: white; border: 1px solid #ddd; border-radius: 5px; }
+        
+        button { width: 150px; background: #2c3e50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        button:hover { background: #1a252f; }
+        
+        #loading { text-align: center; color: #888; display: none; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📄 AI RAG Resume Matcher</h2>
+            <p>Upload your CV + Job Description to see if you match!</p>
+        </div>
+
+        <div class="chat-box" id="chat-box">
+            <div class="message ai">
+                <div class="content">Hello! Upload your <strong>CV</strong> and a <strong>Job Description</strong> (PDFs), and I will tell you if you are a good match! 🎯</div>
+            </div>
+        </div>
+        
+        <div id="loading">Analyzing Match... 🔍</div>
+
+        <div class="upload-area">
+            <div class="file-group">
+                <label>1. Your CV (PDF)</label>
+                <input type="file" id="cv-file" accept=".pdf">
+            </div>
+            <div class="file-group">
+                <label>2. Job Description (PDF)</label>
+                <input type="file" id="job-file" accept=".pdf">
+            </div>
+            <button onclick="analyzeMatch()">Analyze Match</button>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeMatch() {
+            let cvFile = document.getElementById("cv-file").files[0];
+            let jobFile = document.getElementById("job-file").files[0];
+
+            if (!cvFile || !jobFile) {
+                alert("Please upload BOTH files (CV and Job Description)!");
+                return;
+            }
+
+            let chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div class="message user"><div class="content">📄 Analyzing my CV against the Job Description...</div></div>`;
+            document.getElementById("loading").style.display = "block";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            let formData = new FormData();
+            formData.append("cv", cvFile);
+            formData.append("job", jobFile);
+
+            try {
+                let response = await fetch("/ask_rag", { method: "POST", body: formData });
+                let data = await response.json();
+                let formatted = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, "<br>");
+                chatBox.innerHTML += `<div class="message ai"><div class="content">${formatted}</div></div>`;
+            } catch (e) {
+                chatBox.innerHTML += `<div class="message ai"><div class="content" style="color:red">Error: ${e}</div></div>`;
+            }
+            
+            document.getElementById("loading").style.display = "none";
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>

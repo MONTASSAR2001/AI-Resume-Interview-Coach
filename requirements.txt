@@ -1,0 +1,7 @@
+flask
+langchain-groq
+langgraph
+langchain-core
+python-dotenv
+langchain-community
+PyPDF2
